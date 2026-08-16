@@ -1,0 +1,34 @@
+Dodaj w App.js (np. w useEffect uruchamianym raz przy starcie appki):
+
+    import { useEffect } from 'react';
+    import { PermissionsAndroid, Platform } from 'react-native';
+    import * as Notifications from 'expo-notifications';
+
+    useEffect(() => {
+      async function requestPermissions() {
+        if (Platform.OS !== 'android') return;
+
+        // 1. Uprawnienie do odczytu stanu telefonu (wykrywanie połączeń)
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+          {
+            title: 'Uprawnienie do wykrywania połączeń',
+            message:
+              'Aplikacja potrzebuje dostępu do stanu telefonu, aby sprawdzać przychodzące numery.',
+            buttonPositive: 'Zgadzam się',
+          }
+        );
+
+        // 2. Uprawnienie do powiadomień (Android 13+)
+        await Notifications.requestPermissionsAsync();
+      }
+
+      requestPermissions();
+    }, []);
+
+Dodaj to na początku funkcji głównego komponentu App (np. zaraz po innych useEffect,
+przed returnem JSX).
+
+Przy pierwszym uruchomieniu appki po instalacji, telefon pokaże Ci dwa
+system-owe okienka z prośbą o zgodę - musisz kliknąć "Zezwól"/"Zgadzam się"
+w obu, inaczej wykrywanie połączeń i powiadomienia nie zadziałają.

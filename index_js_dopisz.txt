@@ -1,0 +1,26 @@
+W pliku index.js (root Twojego projektu Expo, ten sam co ładuje App.js)
+dopisz na SAMEJ GÓRZE, zaraz po istniejących importach:
+
+    import { AppRegistry } from 'react-native';
+    import headlessCallTask from './headlessCallTask';
+
+a gdzieś przed/po rejestracji głównego komponentu appki dodaj:
+
+    AppRegistry.registerHeadlessTask('IncomingCallCheck', () => headlessCallTask);
+
+Przykładowy pełny index.js (Expo zwykle generuje go automatycznie jako
+node_modules/expo/AppEntry.js, ale jeśli masz customowy - dodaj tam):
+
+    import { registerRootComponent } from 'expo';
+    import { AppRegistry } from 'react-native';
+    import App from './App';
+    import headlessCallTask from './headlessCallTask';
+
+    AppRegistry.registerHeadlessTask('IncomingCallCheck', () => headlessCallTask);
+
+    registerRootComponent(App);
+
+UWAGA: nazwa 'IncomingCallCheck' musi być IDENTYCZNA w trzech miejscach:
+1. tutaj (registerHeadlessTask)
+2. w IncomingCallHeadlessTaskService.kt (getTaskConfig)
+3. nigdzie indziej nie trzeba, to wystarczy

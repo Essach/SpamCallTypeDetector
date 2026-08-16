@@ -83,7 +83,7 @@ const ResultsScreen = ({ route }) => {
 
   const spam = analysisResult.spamAnalysis;
   const recommendation = spam.recommendation;
-  const spamLevel = getSpamLevel(spam.analysis.spamProbability);
+  const spamLevel = getSpamLevel(spam.ratingAnalysis.spamProbability);
   const filteredComments = getFilteredComments();
 
   return (
@@ -143,17 +143,17 @@ const ResultsScreen = ({ route }) => {
           <View style={styles.ratingGrid}>
             <View style={styles.ratingItem}>
               <MaterialIcons name="thumb-down" size={24} color={colors.danger} />
-              <Text style={styles.ratingCount}>{spam.analysis.negativeCount}</Text>
+              <Text style={styles.ratingCount}>{spam.ratingAnalysis.negativeCount}</Text>
               <Text style={styles.ratingLabel}>Negatywne</Text>
             </View>
             <View style={styles.ratingItem}>
               <MaterialIcons name="drag-handle" size={24} color={colors.warning} />
-              <Text style={styles.ratingCount}>{spam.analysis.neutralCount}</Text>
+              <Text style={styles.ratingCount}>{spam.ratingAnalysis.neutralCount}</Text>
               <Text style={styles.ratingLabel}>Neutralne</Text>
             </View>
             <View style={styles.ratingItem}>
               <MaterialIcons name="thumb-up" size={24} color={colors.success} />
-              <Text style={styles.ratingCount}>{spam.analysis.positiveCount}</Text>
+              <Text style={styles.ratingCount}>{spam.ratingAnalysis.positiveCount}</Text>
               <Text style={styles.ratingLabel}>Pozytywne</Text>
             </View>
           </View>

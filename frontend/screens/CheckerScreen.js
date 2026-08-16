@@ -14,6 +14,8 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { phoneService, historyService } from '../services/apiService';
 import { colors, validatePhoneNumber, formatPhoneNumber, messages } from '../utils/helpers';
 
+
+
 const CheckerScreen = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [loading, setLoading] = useState(false);

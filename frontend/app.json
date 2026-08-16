@@ -15,29 +15,36 @@
       "**/*"
     ],
     "ios": {
-      "supportsTabletMode": true,
-      "bundleIdentifier": "com.siantkowsky.odebracterefon"
+      "bundleIdentifier": "com.adrian.odebractelefon"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#1F2937"
       },
-      "package": "com.siantkowsky.odebracterefon"
+      "package": "com.adrian.odebractelefon",
+      "permissions": [
+        "READ_PHONE_STATE",
+        "POST_NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "FOREGROUND_SERVICE",
+        "READ_CALL_LOG"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
-        "expo-contacts",
-        {
-          "contactsPermission": "Aplikacja wymaga dostępu do kontaktów"
-        }
-      ]
+    [
+      "expo-contacts",
+      {
+        "contactsPermission": "Aplikacja wymaga dostępu do kontaktów"
+      }
+    ],
+    "expo-notifications"
     ],
     "extra": {
-      "apiUrl": "http://localhost:3000"
+      "apiUrl": "https://spamcalldetectbackend.vercel.app"
     }
   }
 }

@@ -1,7 +1,9 @@
 import React, { useEffect } from 'react';
+import { PermissionsAndroid, Platform, TouchableOpacity } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialIcons } from '@expo/vector-icons';
 import { View, Text } from 'react-native';
@@ -10,6 +12,16 @@ import CheckerScreen from './screens/CheckerScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import SettingsScreen from './screens/SettingsScreen';
+
+import headlessCallTask from './headlessCallTask';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -112,6 +124,36 @@ function SettingsStack() {
 }
 
 export default function App() {
+  useEffect(() => {
+      async function requestPermissions() {
+        if (Platform.OS !== 'android') return;
+
+        // 1. Uprawnienie do odczytu stanu telefonu (wykrywanie połączeń)
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_PHONE_STATE,
+          {
+            title: 'Uprawnienie do wykrywania połączeń',
+            message:
+              'Aplikacja potrzebuje dostępu do stanu telefonu, aby sprawdzać przychodzące numery.',
+            buttonPositive: 'Zgadzam się',
+          }
+        );
+        await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_CALL_LOG,
+          {
+            title: 'Uprawnienie do odczytu numeru',
+            message: 'Aplikacja potrzebuje dostępu do numeru przychodzącego połączenia.',
+            buttonPositive: 'Zgadzam się',
+          }
+        );
+
+        // 2. Uprawnienie do powiadomień (Android 13+)
+        await Notifications.requestPermissionsAsync();
+      }
+
+      requestPermissions();
+    }, []);
+
   return (
     <NavigationContainer>
       <StatusBar barStyle="light-content" backgroundColor="#1F2937" />
@@ -167,6 +209,11 @@ export default function App() {
           }}
         />
       </Tab.Navigator>
+      <View>
+        <TouchableOpacity onPress={() => headlessCallTask({ phoneNumber: '123456789' })}>
+          <Text>TEST powiadomienia</Text>
+        </TouchableOpacity>
+      </View>
     </NavigationContainer>
   );
 }
