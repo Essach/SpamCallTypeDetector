@@ -23,15 +23,40 @@ import {
 } from '../utils/helpers';
 
 const ResultsScreen = ({ route }) => {
-  const { analysisResult, phoneNumber } = route.params;
+  // Gdy appka otwiera sie z deep linku (powiadomienie), przychodzi tylko "phone"
+  // (patrz: linking config w App.js). Gdy z normalnej nawigacji w appce,
+  // przychodzi phoneNumber + gotowy analysisResult.
+  const params = route.params || {};
+  const initialPhoneNumber = params.phoneNumber || params.phone;
+
+  const [phoneNumber] = useState(initialPhoneNumber);
+  const [analysisResult, setAnalysisResult] = useState(params.analysisResult || null);
+  const [loadingAnalysis, setLoadingAnalysis] = useState(!params.analysisResult);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [selectedTab, setSelectedTab] = useState('overview');
   const [commentFilter, setCommentFilter] = useState('all');
 
   useEffect(() => {
+    if (!analysisResult && phoneNumber) {
+      fetchAnalysis();
+    }
     loadComments();
   }, []);
+
+  const fetchAnalysis = async () => {
+    try {
+      setLoadingAnalysis(true);
+      const result = await phoneService.analyzePhone(phoneNumber);
+      if (result.success) {
+        setAnalysisResult(result);
+      }
+    } catch (error) {
+      console.error('Blad przy pobieraniu analizy:', error);
+    } finally {
+      setLoadingAnalysis(false);
+    }
+  };
 
   const loadComments = async () => {
     try {
@@ -70,16 +95,17 @@ const ResultsScreen = ({ route }) => {
     }
   };
 
-  if (!analysisResult) {
-    return (
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Ładuję wyniki...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (!analysisResult || loadingAnalysis) {
+      return (
+        <SafeAreaView style={styles.safeArea}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Ładuję wyniki...</Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
 
   const spam = analysisResult.spamAnalysis;
   const recommendation = spam.recommendation;

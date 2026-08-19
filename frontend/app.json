@@ -24,7 +24,6 @@
       },
       "package": "com.adrian.odebractelefon",
       "permissions": [
-        "READ_PHONE_STATE",
         "POST_NOTIFICATIONS",
         "RECEIVE_BOOT_COMPLETED",
         "FOREGROUND_SERVICE",
@@ -45,6 +44,7 @@
     ],
     "extra": {
       "apiUrl": "https://spamcalldetectbackend.vercel.app"
-    }
+    },
+    "scheme": "odebractelefon"
   }
 }

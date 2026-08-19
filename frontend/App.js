@@ -15,16 +15,45 @@ import SettingsScreen from './screens/SettingsScreen';
 
 import headlessCallTask from './headlessCallTask';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+import { NativeModules, Alert } from 'react-native';
+
+import { Linking } from 'react-native';
+
+const linking = {
+  prefixes: ['odebractelefon://'],
+  config: {
+    screens: {
+      Checker: {
+        screens: {
+          Results: 'result', // <- nazwa ekranu do potwierdzenia z CheckerStack
+        },
+      },
+    },
+  },
+};
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+const { RoleManagerModule } = NativeModules;
+
+async function requestCallScreeningRole() {
+  try {
+    const result = await RoleManagerModule.requestCallScreeningRole();
+    if (result === 'ALREADY_GRANTED') {
+      Alert.alert('Gotowe', 'Aplikacja jest juz ustawiona jako program do identyfikacji spamu.');
+    }
+    // Jesli result === 'REQUESTED', system sam pokazal okienko wyboru -
+    // uzytkownik zobaczy je zaraz po wywolaniu tej funkcji.
+  } catch (error) {
+    Alert.alert('Blad', error.message || 'Nie udalo sie poprosic o uprawnienie.');
+  }
+}
+
+async function checkCallScreeningStatus() {
+  const granted = await RoleManagerModule.isCallScreeningRoleGranted();
+  return granted;
+}
 
 // Stack Navigator dla Checkera
 function CheckerStack() {
@@ -155,7 +184,7 @@ export default function App() {
     }, []);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer linking={linking}>
       <StatusBar barStyle="light-content" backgroundColor="#1F2937" />
       <Tab.Navigator
         screenOptions={({ route }) => ({
@@ -210,6 +239,9 @@ export default function App() {
         />
       </Tab.Navigator>
       <View>
+        <TouchableOpacity onPress={requestCallScreeningRole}>
+          <Text>Ustaw jako aplikacje do wykrywania spamu</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => headlessCallTask({ phoneNumber: '123456789' })}>
           <Text>TEST powiadomienia</Text>
         </TouchableOpacity>

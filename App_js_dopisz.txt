@@ -1,0 +1,36 @@
+Dodaj w App.js:
+
+    import { NativeModules, Alert } from 'react-native';
+    const { RoleManagerModule } = NativeModules;
+
+    async function requestCallScreeningRole() {
+      try {
+        const result = await RoleManagerModule.requestCallScreeningRole();
+        if (result === 'ALREADY_GRANTED') {
+          Alert.alert('Gotowe', 'Aplikacja jest juz ustawiona jako program do identyfikacji spamu.');
+        }
+        // Jesli result === 'REQUESTED', system sam pokazal okienko wyboru -
+        // uzytkownik zobaczy je zaraz po wywolaniu tej funkcji.
+      } catch (error) {
+        Alert.alert('Blad', error.message || 'Nie udalo sie poprosic o uprawnienie.');
+      }
+    }
+
+    async function checkCallScreeningStatus() {
+      const granted = await RoleManagerModule.isCallScreeningRoleGranted();
+      return granted;
+    }
+
+Dodaj gdzies w widoku (np. na ekranie ustawien) przycisk:
+
+    <TouchableOpacity onPress={requestCallScreeningRole}>
+      <Text>Ustaw jako aplikacje do wykrywania spamu</Text>
+    </TouchableOpacity>
+
+WAZNE: to musi byc klikniete RECZNIE przez uzytkownika (Ciebie) PRZYNAJMNIEJ RAZ,
+zanim CallScreeningServiceImpl zacznie dzialac. System pokaze systemowe okienko
+"Ustawic [Twoja apka] jako domyslna aplikacje identyfikacji dzwoniacego i spamu?"
+- musisz kliknac "Ustaw jako domyslna" / "Set as default".
+
+Mozesz tez sprawdzic czy uprawnienie jest juz nadane przez checkCallScreeningStatus()
+i pokazac to w UI (np. zielona/czerwona etykieta w Ustawieniach appki).
