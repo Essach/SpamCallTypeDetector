@@ -35,6 +35,14 @@ const linking = {
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
+
 const { RoleManagerModule } = NativeModules;
 
 async function requestCallScreeningRole() {
@@ -60,32 +68,11 @@ function CheckerStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#1F2937',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerShadowVisible: false,
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="CheckerMain"
-        component={CheckerScreen}
-        options={{
-          title: 'Sprawdź numer',
-          headerTitleAlign: 'center',
-        }}
-      />
-      <Stack.Screen
-        name="Results"
-        component={ResultsScreen}
-        options={{
-          title: 'Wyniki analizy',
-          headerTitleAlign: 'center',
-        }}
-      />
+      <Stack.Screen name="CheckerMain" component={CheckerScreen} />
+      <Stack.Screen name="Results" component={ResultsScreen} />
     </Stack.Navigator>
   );
 }
@@ -95,32 +82,11 @@ function HistoryStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#1F2937',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerShadowVisible: false,
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="HistoryMain"
-        component={HistoryScreen}
-        options={{
-          title: 'Historia',
-          headerTitleAlign: 'center',
-        }}
-      />
-      <Stack.Screen
-        name="HistoryResults"
-        component={ResultsScreen}
-        options={{
-          title: 'Wyniki analizy',
-          headerTitleAlign: 'center',
-        }}
-      />
+      <Stack.Screen name="HistoryMain" component={HistoryScreen} />
+      <Stack.Screen name="HistoryResults" component={ResultsScreen} />
     </Stack.Navigator>
   );
 }
@@ -130,24 +96,10 @@ function SettingsStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: {
-          backgroundColor: '#1F2937',
-        },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-        headerShadowVisible: false,
+        headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="SettingsMain"
-        component={SettingsScreen}
-        options={{
-          title: 'Ustawienia',
-          headerTitleAlign: 'center',
-        }}
-      />
+      <Stack.Screen name="SettingsMain" component={SettingsScreen} />
     </Stack.Navigator>
   );
 }
@@ -183,6 +135,12 @@ export default function App() {
       requestPermissions();
     }, []);
 
+  useEffect(() => {
+    Notifications.getPermissionsAsync().then(status => {
+      console.log('🔔 Status uprawnien powiadomien:', JSON.stringify(status));
+    });
+  }, [])
+
   return (
     <NavigationContainer linking={linking}>
       <StatusBar barStyle="light-content" backgroundColor="#1F2937" />
@@ -202,11 +160,11 @@ export default function App() {
 
             return <MaterialIcons name={iconName} size={size} color={color} />;
           },
-          tabBarActiveTintColor: '#10B981',
-          tabBarInactiveTintColor: '#6B7280',
+          tabBarActiveTintColor: '#8646c2',
+          tabBarInactiveTintColor: '#6f7e9b',
           tabBarStyle: {
-            backgroundColor: '#1F2937',
-            borderTopColor: '#374151',
+            backgroundColor: '#0a0e14',
+            borderTopColor: '#37415100',
             borderTopWidth: 1,
           },
           tabBarLabelStyle: {
@@ -238,14 +196,6 @@ export default function App() {
           }}
         />
       </Tab.Navigator>
-      <View>
-        <TouchableOpacity onPress={requestCallScreeningRole}>
-          <Text>Ustaw jako aplikacje do wykrywania spamu</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => headlessCallTask({ phoneNumber: '123456789' })}>
-          <Text>TEST powiadomienia</Text>
-        </TouchableOpacity>
-      </View>
     </NavigationContainer>
   );
 }

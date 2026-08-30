@@ -19,12 +19,14 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 private const val CHANNEL_ID = "spam_check_results"
 private const val TAG = "CallScreening"
 
 // USTAW SWOJ PRAWDZIWY ADRES BACKENDU Z VERCEL:
-private const val BASE_URL = "https://spamcalldetectbackend.vercel.app"
+private const val BASE_URL = "https://twoj-projekt.vercel.app"
 
 class CallScreeningServiceImpl : CallScreeningService() {
 
@@ -36,10 +38,6 @@ class CallScreeningServiceImpl : CallScreeningService() {
 
         if (rawNumber.isNullOrEmpty()) return
 
-        // Odpowiadamy natychmiast: NIE blokujemy i NIE odrzucamy polaczenia.
-        // Uwaga: setSkipNotification/setSkipCallLog moga byc ustawione TYLKO
-        // gdy polaczenie jest blokowane - dla dozwolonych polaczen (nasz przypadek)
-        // uzywamy samych domyslnych flag disallow/reject.
         val response = CallResponse.Builder()
             .setDisallowCall(false)
             .setRejectCall(false)
@@ -47,7 +45,6 @@ class CallScreeningServiceImpl : CallScreeningService() {
 
         respondToCall(callDetails, response)
 
-        // Asynchronicznie odpytujemy nasz backend i pokazujemy wlasne powiadomienie z wynikiem.
         checkNumberAndNotify(rawNumber)
     }
 
@@ -66,11 +63,22 @@ class CallScreeningServiceImpl : CallScreeningService() {
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: OkCall, e: IOException) {
                 Log.e(TAG, "Blad zapytania do backendu", e)
-                showNotification(
-                    phoneNumber,
-                    "Blad sprawdzania numeru",
-                    "Nie udalo sie polaczyc z serwerem analizy."
-                )
+
+                val isConnectivityIssue = e is UnknownHostException || e is SocketTimeoutException
+
+                if (isConnectivityIssue) {
+                    showNotification(
+                        phoneNumber,
+                        "Brak internetu",
+                        "Nie sprawdzono numeru. Kliknij po polaczeniu z siecia, zeby sprawdzic teraz."
+                    )
+                } else {
+                    showNotification(
+                        phoneNumber,
+                        "Blad sprawdzania numeru",
+                        "Cos poszlo nie tak. Kliknij, zeby sprobowac ponownie."
+                    )
+                }
             }
 
             override fun onResponse(call: OkCall, response: Response) {
@@ -79,14 +87,22 @@ class CallScreeningServiceImpl : CallScreeningService() {
                     Log.d(TAG, "HTTP status: ${response.code}, body: $responseBody")
 
                     if (responseBody == null) {
-                        showNotification(phoneNumber, "Brak odpowiedzi", "Serwer nie zwrocil danych.")
+                        showNotification(
+                            phoneNumber,
+                            "Brak odpowiedzi",
+                            "Serwer nie zwrocil danych. Kliknij, zeby sprobowac ponownie."
+                        )
                         return
                     }
 
                     val data = JSONObject(responseBody)
 
                     if (!data.optBoolean("success", false)) {
-                        showNotification(phoneNumber, "Brak danych", "Nie udalo sie przeanalizowac numeru.")
+                        showNotification(
+                            phoneNumber,
+                            "Brak danych",
+                            "Nie udalo sie przeanalizowac numeru. Kliknij, zeby sprobowac ponownie."
+                        )
                         return
                     }
 
@@ -102,7 +118,7 @@ class CallScreeningServiceImpl : CallScreeningService() {
                     showNotification(
                         phoneNumber,
                         "Blad przetwarzania",
-                        "Nie udalo sie odczytac odpowiedzi serwera."
+                        "Kliknij, zeby sprobowac ponownie."
                     )
                 }
             }

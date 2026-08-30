@@ -25,7 +25,7 @@ export const colors = {
   textWhite: '#FFFFFF',
 
   // Status Colors
-  danger: '#EF4444',
+  danger: '#f17e6e',
   dangerLight: '#FEE2E2',
   warning: '#F59E0B',
   warningLight: '#FEF3C7',

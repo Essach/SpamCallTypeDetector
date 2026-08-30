@@ -17,7 +17,10 @@ const verdictEmoji = {
  * Nazwa "IncomingCallCheck" musi być identyczna jak w Kotlinie i w rejestracji poniżej.
  */
 async function headlessCallTask(taskData) {
+  // console.log("heree")
   const { phoneNumber } = taskData;
+
+  // console.log(phoneNumber)
 
   if (!phoneNumber) {
     return;
@@ -44,6 +47,7 @@ async function headlessCallTask(taskData) {
     const { recommendation, confidence } = data.spamAnalysis;
     const emoji = verdictEmoji[recommendation.verdict] || 'ℹ️';
 
+    // console.log("hereee")
     await showNotification(
       phoneNumber,
       `${emoji} ${recommendation.verdict} (${confidence}%)`,
@@ -61,14 +65,29 @@ async function headlessCallTask(taskData) {
 }
 
 async function showNotification(phoneNumber, title, body, fullData) {
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: `${title} — ${phoneNumber}`,
-      body,
-      data: { phoneNumber, analysisResult: fullData || null },
-    },
-    trigger: null, // natychmiast
-  });
+  console.log("here notif")
+  // await Notifications.scheduleNotificationAsync({
+  //   content: {
+  //     title: `${title} — ${phoneNumber}`,
+  //     body,
+  //     data: { phoneNumber, analysisResult: fullData || null },
+  //   },
+  //   trigger: null, // natychmiast
+  // });
+  try {
+    const result = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `${title} — ${phoneNumber}`,
+        body,
+        data: { phoneNumber, analysisResult: fullData || null },
+      },
+      trigger: null,
+    });
+    console.log('✅ Powiadomienie zaplanowane, id:', result);
+  } catch (error) {
+    console.error('❌ Blad scheduleNotificationAsync:', error);
+  }
 }
+
 
 export default headlessCallTask;

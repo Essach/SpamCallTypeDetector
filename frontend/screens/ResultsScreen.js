@@ -6,21 +6,34 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  Share,
   ActivityIndicator,
   FlatList,
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { phoneService } from '../services/apiService';
 import {
-  colors,
   getSpamLevel,
   formatPhoneNumber,
   getSpamTypeLabel,
-  formatDate,
   filterComments,
   sortComments,
 } from '../utils/helpers';
+
+// Paleta: gleboki fiolet-granat w tle, elektryczny fiolet + indygo jako akcent
+const theme = {
+  bg: '#0D0A1F',
+  bgSecondary: '#171232',
+  bgCard: '#1E1840',
+  border: '#332B5E',
+  primary: '#8B5CF6',
+  accent: '#6366F1',
+  danger: '#F43F5E',
+  warning: '#FBBF24',
+  success: '#34D399',
+  text: '#F3F1FA',
+  textLight: '#A7A0C9',
+  textWhite: '#FFFFFF',
+};
 
 const ResultsScreen = ({ route }) => {
   // Gdy appka otwiera sie z deep linku (powiadomienie), przychodzi tylko "phone"
@@ -34,7 +47,6 @@ const ResultsScreen = ({ route }) => {
   const [loadingAnalysis, setLoadingAnalysis] = useState(!params.analysisResult);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('overview');
   const [commentFilter, setCommentFilter] = useState('all');
 
   useEffect(() => {
@@ -79,33 +91,16 @@ const ResultsScreen = ({ route }) => {
     return sortComments(filterComments(comments, commentFilter), 'date');
   };
 
-  const handleShare = async () => {
-    try {
-      const spam = analysisResult.spamAnalysis;
-      const message = `Sprawdzony numer: ${formatPhoneNumber(phoneNumber)}\nTyp spamu: ${getSpamTypeLabel(
-        spam.mostLikelySpam
-      )}\nPewność: ${spam.confidence}%\nRekomenacja: ${spam.recommendation.verdict}`;
-
-      await Share.share({
-        message,
-        title: 'Wynik analizy numeru telefonu',
-      });
-    } catch (error) {
-      console.error('Błąd przy udostępnianiu:', error);
-    }
-  };
-
   if (!analysisResult || loadingAnalysis) {
-      return (
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Ładuję wyniki...</Text>
-          </View>
-        </SafeAreaView>
-      );
-    }
-
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Ładuję wyniki...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const spam = analysisResult.spamAnalysis;
   const recommendation = spam.recommendation;
@@ -118,7 +113,7 @@ const ResultsScreen = ({ route }) => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.phoneNumberContainer}>
-            <MaterialIcons name="phone" size={24} color={colors.primary} />
+            <MaterialIcons name="phone" size={24} color={theme.primary} />
             <Text style={styles.phoneNumber}>{formatPhoneNumber(phoneNumber)}</Text>
           </View>
         </View>
@@ -127,19 +122,17 @@ const ResultsScreen = ({ route }) => {
         <View
           style={[
             styles.verdictCard,
-            { backgroundColor: spamLevel.bgColor, borderColor: spamLevel.color },
+            { borderColor: spamLevel.color },
           ]}
         >
-          <Text style={[styles.verdictEmoji]}>{spamLevel.emoji}</Text>
+          <Text style={styles.verdictEmoji}>{spamLevel.emoji}</Text>
           <Text style={[styles.verdictTitle, { color: spamLevel.color }]}>
             {recommendation.verdict}
           </Text>
           <Text style={[styles.verdictAction, { color: spamLevel.color }]}>
             {recommendation.shouldAnswer}
           </Text>
-          <Text style={[styles.verdictMessage, { color: colors.text }]}>
-            {recommendation.message}
-          </Text>
+          <Text style={styles.verdictMessage}>{recommendation.message}</Text>
         </View>
 
         {/* Confidence Meter */}
@@ -165,20 +158,20 @@ const ResultsScreen = ({ route }) => {
 
         {/* Rating Distribution */}
         <View style={styles.ratingSection}>
-          <Text style={styles.ratingTitle}>Rozkład opinii</Text>
+          <Text style={styles.sectionTitle}>Rozkład opinii</Text>
           <View style={styles.ratingGrid}>
             <View style={styles.ratingItem}>
-              <MaterialIcons name="thumb-down" size={24} color={colors.danger} />
+              <MaterialIcons name="thumb-down" size={24} color={theme.danger} />
               <Text style={styles.ratingCount}>{spam.ratingAnalysis.negativeCount}</Text>
               <Text style={styles.ratingLabel}>Negatywne</Text>
             </View>
             <View style={styles.ratingItem}>
-              <MaterialIcons name="drag-handle" size={24} color={colors.warning} />
+              <MaterialIcons name="drag-handle" size={24} color={theme.warning} />
               <Text style={styles.ratingCount}>{spam.ratingAnalysis.neutralCount}</Text>
               <Text style={styles.ratingLabel}>Neutralne</Text>
             </View>
             <View style={styles.ratingItem}>
-              <MaterialIcons name="thumb-up" size={24} color={colors.success} />
+              <MaterialIcons name="thumb-up" size={24} color={theme.success} />
               <Text style={styles.ratingCount}>{spam.ratingAnalysis.positiveCount}</Text>
               <Text style={styles.ratingLabel}>Pozytywne</Text>
             </View>
@@ -203,10 +196,10 @@ const ResultsScreen = ({ route }) => {
                         width: `${item.confidence}%`,
                         backgroundColor:
                           item.confidence > 70
-                            ? colors.danger
+                            ? theme.danger
                             : item.confidence > 40
-                            ? colors.warning
-                            : colors.info,
+                            ? theme.warning
+                            : theme.accent,
                       },
                     ]}
                   />
@@ -242,7 +235,7 @@ const ResultsScreen = ({ route }) => {
               <MaterialIcons
                 name="refresh"
                 size={20}
-                color={colors.primary}
+                color={theme.primary}
                 style={loadingComments ? { opacity: 0.5 } : {}}
               />
             </TouchableOpacity>
@@ -280,7 +273,7 @@ const ResultsScreen = ({ route }) => {
           {/* Comments List */}
           {loadingComments ? (
             <View style={styles.loadingComments}>
-              <ActivityIndicator color={colors.primary} />
+              <ActivityIndicator color={theme.primary} />
             </View>
           ) : filteredComments.length > 0 ? (
             <FlatList
@@ -300,10 +293,10 @@ const ResultsScreen = ({ route }) => {
                         size={16}
                         color={
                           item.rating === 1
-                            ? colors.danger
+                            ? theme.danger
                             : item.rating === 3
-                            ? colors.warning
-                            : colors.success
+                            ? theme.warning
+                            : theme.success
                         }
                       />
                       <Text style={styles.commentRatingText}>{item.ratingLabel}</Text>
@@ -311,9 +304,7 @@ const ResultsScreen = ({ route }) => {
                     <Text style={styles.commentAuthor}>{item.author}</Text>
                   </View>
                   <Text style={styles.commentCategory}>{item.category}</Text>
-                  {item.comment && (
-                    <Text style={styles.commentText}>{item.comment}</Text>
-                  )}
+                  {item.comment && <Text style={styles.commentText}>{item.comment}</Text>}
                 </View>
               )}
               keyExtractor={(item, index) => `${item.category}-${index}`}
@@ -324,12 +315,6 @@ const ResultsScreen = ({ route }) => {
           )}
         </View>
 
-        {/* Share Button */}
-        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
-          <MaterialIcons name="share" size={20} color={colors.textWhite} />
-          <Text style={styles.shareButtonText}>Udostępnij wynik</Text>
-        </TouchableOpacity>
-
         <View style={styles.spacer} />
       </ScrollView>
     </SafeAreaView>
@@ -339,7 +324,8 @@ const ResultsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.bg,
+    backgroundColor: theme.bg,
+    marginTop: 30,
   },
   container: {
     flex: 1,
@@ -349,11 +335,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: theme.bg,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: colors.textLight,
+    color: theme.textLight,
   },
   header: {
     marginBottom: 20,
@@ -366,14 +353,15 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 20,
     fontWeight: '700',
-    color: colors.text,
+    color: theme.text,
   },
   verdictCard: {
     padding: 20,
-    borderRadius: 12,
-    borderWidth: 2,
+    borderRadius: 16,
+    borderWidth: 1.5,
     marginBottom: 20,
     alignItems: 'center',
+    backgroundColor: theme.bgCard,
   },
   verdictEmoji: {
     fontSize: 40,
@@ -393,11 +381,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     textAlign: 'center',
+    color: theme.text,
   },
   confidenceSection: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: theme.bgCard,
+    borderWidth: 1,
+    borderColor: theme.border,
     padding: 16,
-    borderRadius: 10,
+    borderRadius: 14,
     marginBottom: 20,
   },
   confidenceHeader: {
@@ -408,7 +399,7 @@ const styles = StyleSheet.create({
   confidenceLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: theme.text,
   },
   confidenceValue: {
     fontSize: 16,
@@ -416,7 +407,7 @@ const styles = StyleSheet.create({
   },
   confidenceBar: {
     height: 8,
-    backgroundColor: colors.border,
+    backgroundColor: theme.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -427,52 +418,49 @@ const styles = StyleSheet.create({
   ratingSection: {
     marginBottom: 20,
   },
-  ratingTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
   ratingGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginTop: 12,
   },
   ratingItem: {
     alignItems: 'center',
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: theme.bgCard,
+    borderWidth: 1,
+    borderColor: theme.border,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     flex: 1,
     marginHorizontal: 4,
   },
   ratingCount: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.text,
+    color: theme.text,
     marginTop: 4,
   },
   ratingLabel: {
     fontSize: 12,
-    color: colors.textLight,
+    color: theme.textLight,
     marginTop: 2,
   },
   spamTypesSection: {
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 12,
+    fontSize: 12,
+    fontWeight: '800',
+    color: theme.textLight,
+    marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.2,
   },
   spamTypeCard: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: theme.bgCard,
+    borderWidth: 1,
+    borderColor: theme.border,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     marginBottom: 10,
   },
   spamTypeHeader: {
@@ -484,22 +472,23 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.primary,
-    color: colors.textWhite,
+    backgroundColor: theme.primary,
+    color: theme.textWhite,
     textAlign: 'center',
     lineHeight: 28,
     fontWeight: '700',
     marginRight: 10,
+    overflow: 'hidden',
   },
   spamTypeName: {
     flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: theme.text,
   },
   spamTypeBar: {
     height: 6,
-    backgroundColor: colors.border,
+    backgroundColor: theme.border,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 6,
@@ -510,7 +499,7 @@ const styles = StyleSheet.create({
   },
   spamTypeConfidence: {
     fontSize: 12,
-    color: colors.textLight,
+    color: theme.textLight,
     fontWeight: '600',
   },
   categoriesSection: {
@@ -520,25 +509,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: theme.bgCard,
+    borderWidth: 1,
+    borderColor: theme.border,
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 12,
     marginBottom: 8,
   },
   categoryName: {
     flex: 1,
     fontSize: 14,
-    color: colors.text,
+    color: theme.text,
     fontWeight: '500',
   },
   categoryBadge: {
-    backgroundColor: colors.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   categoryCount: {
-    color: colors.textWhite,
+    color: theme.textWhite,
     fontWeight: '700',
     fontSize: 12,
   },
@@ -559,31 +550,33 @@ const styles = StyleSheet.create({
   filterButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: colors.bgSecondary,
+    borderRadius: 10,
+    backgroundColor: theme.bgCard,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: theme.border,
   },
   filterButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   filterButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.text,
+    color: theme.text,
   },
   filterButtonTextActive: {
-    color: colors.textWhite,
+    color: theme.textWhite,
   },
   loadingComments: {
     paddingVertical: 20,
     alignItems: 'center',
   },
   commentCard: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: theme.bgCard,
+    borderWidth: 1,
+    borderColor: theme.border,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 14,
     marginBottom: 10,
   },
   commentHeader: {
@@ -600,43 +593,28 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontSize: 12,
     fontWeight: '600',
-    color: colors.text,
+    color: theme.text,
   },
   commentAuthor: {
     fontSize: 12,
     fontWeight: '600',
-    color: colors.textLight,
+    color: theme.textLight,
   },
   commentCategory: {
     fontSize: 12,
-    color: colors.primary,
+    color: theme.accent,
     fontWeight: '600',
     marginBottom: 6,
   },
   commentText: {
     fontSize: 13,
-    color: colors.text,
+    color: theme.text,
     lineHeight: 18,
   },
   noComments: {
     textAlign: 'center',
-    color: colors.textLight,
+    color: theme.textLight,
     paddingVertical: 20,
-    fontSize: 14,
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.secondary,
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 20,
-  },
-  shareButtonText: {
-    marginLeft: 8,
-    color: colors.textWhite,
-    fontWeight: '600',
     fontSize: 14,
   },
   spacer: {
